@@ -46,7 +46,7 @@ std::string buildRestString( int aDigitCount )
 //! Idea:
 //! Firstly, we should add 1 because we want a greater number.
 //! Then, deal with the issue of "no identical consecutive digits".
-//! Scan from the inital, if found two identical digits, add 1 to the 2nd one (need to consider 9).
+//! Scan from the initial, if found two identical digits, add 1 to the 2nd one (need to consider 9).
 //! For the rest rear digits, we should make them be 01010...
 int getSmallestGreaterThan( int aNumber )
 {
