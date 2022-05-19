@@ -761,38 +761,75 @@ namespace ArraysAndStrings
     // Greedy, counting, hash table.
     //
     // Time: O(m + n) while m is the size of nums1 and n i the size of nums2
-    // Space: O(1)O(1)
+    // Space: O(1)
     //-----------------------------------------------------------------------------------
 
     int minOperations(vector<int>& nums1, vector<int>& nums2)
     {
-        if (nums1.size() * 6 < nums2.size() || nums2.size() * 6 < nums1.size())
+        // Deal with the situation of impossible.
+        // Try to maximize the short list and minimize the long list. If the sum of short
+        // list is still greater than the sum of long list, it is impossible to find a
+        // solution.
+        const int len1 = nums1.size();
+        const int len2 = nums2.size();
+        if (len1 * 6 < len2 || len1 > len2 * 6)
+        {
             return -1;
-
-        int sum1 = accumulate(begin(nums1), end(nums1), 0);
-        int sum2 = accumulate(begin(nums2), end(nums2), 0);
-        if (sum1 > sum2)
-            return minOperations(nums2, nums1);
-
-        int ans = 0;
-        // increases in nums1 & decreases in nums2
-        vector<int> count(6);
-
-        for (const int num : nums1)
-            ++count[6 - num];
-
-        for (const int num : nums2)
-            ++count[num - 1];
-
-        for (int i = 5; sum2 > sum1;) {
-            while (count[i] == 0)
-                --i;
-            sum1 += i;
-            --count[i];
-            ++ans;
         }
 
-        return ans;
+        int sum1 = std::accumulate(nums1.begin(), nums1.end(), 0);
+        int sum2 = std::accumulate(nums2.begin(), nums2.end(), 0);
+
+        if (sum1 == sum2)
+        {
+            return 0;
+        }
+
+        // We need to handle the great/small list separately.
+        const vector<int>& greatList = sum1 > sum2 ? nums1 : nums2;
+        const vector<int>& smallList = sum1 <= sum2 ? nums1 : nums2;
+
+        // Let sum2 greater.
+        if (sum1 > sum2)
+        {
+            swap(sum1, sum2);
+        }
+
+        // Calculate the power of change.
+        // Every element can be changed to 1~6. The power of change is the value of that
+        // change can contribute. For example, changing 1 to 6, the power of change is
+        // 6 - 1 = 5, changing 1 to 4, the value is 3.
+        // We need to collect all powers within the two lists.
+        // The range of power is 0~5.
+        vector<uint32_t> powerOfChange(6);
+
+        // Collect power of change from greatList.
+        for (const auto& i : greatList)
+        {
+            powerOfChange[i - 1]++;
+        }
+        // Collect power of change from smallList.
+        for (const auto& i : smallList)
+        {
+            powerOfChange[6 - i]++;
+        }
+
+        int steps = 0;
+        // Use power of change to offset the difference between two lists.
+        for (int p = 5; p > 0 && sum1 < sum2;)
+        {
+            // If there is no power at p, try to find smaller powers.
+            if (powerOfChange[p] == 0)
+            {
+                p--;
+            }
+            // Use one power, so decrease the number of power by 1.
+            sum1 += p;
+            powerOfChange[p]--;
+            steps++;
+        }
+
+        return steps;
     }
 
     //-----------------------------------------------------------------------------------
@@ -906,9 +943,15 @@ namespace ArraysAndStrings
         //Output : "accaccacc"
         input = "3[a2[c]]";
         cout << "Result of Decode String: " << decodeString("2[abc]3[cd]ef") << endl;
+        cout << "\n";
 
-        vector<int> intV2 = { 1,1,2,2,2,2 };
-        intV = { 1,2,3,4,5,6 };
+        // 1775. Equal Sum Arrays With Minimum Number of Operations
+        // Input: nums1 = [1, 2, 3, 4, 5, 6], nums2 = [1, 1, 2, 2, 2, 2]
+        // Output : 3
+        // Input: [5, 2, 1, 5, 2, 2, 2, 2, 4, 3, 3, 5], [1, 4, 5, 5, 6, 3, 1, 3, 3]
+        // Output: 1
+        vector<int> intV2 = { 5, 2, 1, 5, 2, 2, 2, 2, 4, 3, 3, 5 };
+        intV = { 1, 4, 5, 5, 6, 3, 1, 3, 3 };
 
         cout << "Result of Equal Sum Arrays With Minimum Number of Operations: " << minOperations(intV2, intV) << endl;
     }
