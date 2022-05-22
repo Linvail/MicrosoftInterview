@@ -78,7 +78,6 @@ namespace LinkedLists
     // We need a function to merge two lists.
     // We have done it in "21. Merge Two Sorted Lists", which can be done by recursion or
     // iteration. To avoid overflow, we will use the iterative one here.
-
     ListNode* mergeTwoLists(ListNode* list1, ListNode* list2)
     {
         ListNode* dummy = new ListNode(-1);

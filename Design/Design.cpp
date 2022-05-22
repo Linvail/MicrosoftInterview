@@ -367,6 +367,93 @@ private:
     vector<int> hits;
 };
 
+//-----------------------------------------------------------------------------------
+// 208. Implement Trie (Prefix Tree)
+//-----------------------------------------------------------------------------------
+class Trie
+{
+public:
+    // Since it's called Prefix Tree, let's do this by using trees.
+    // Note that the node doesn't need a 'value' member.
+    class TreeNode
+    {
+    public:
+        TreeNode() : m_children(26, nullptr) {}
+        bool m_isWord = false;
+        vector<TreeNode*> m_children;
+    };
+
+    Trie()
+    {
+        m_root = new TreeNode();
+    }
+
+    void insert(string word)
+    {
+        if (!word.empty())
+        {
+            TreeNode* current = m_root;
+            for (const auto& c : word)
+            {
+                const int idx = c - 'a';
+                if (!current->m_children[idx])
+                {
+                    current->m_children[idx] = new TreeNode();
+                }
+                current = current->m_children[idx];
+            }
+            current->m_isWord = true;
+        }
+    }
+
+    bool search(string word)
+    {
+        if (word.empty())
+        {
+            return false;
+        }
+
+        TreeNode* current = m_root;
+        for (const auto& c : word)
+        {
+            const int idx = c - 'a';
+            if (!current->m_children[idx])
+            {
+                return false;
+            }
+            current = current->m_children[idx];
+        }
+
+        return current->m_isWord;
+    }
+
+    bool startsWith(string prefix)
+    {
+        if (prefix.empty())
+        {
+            return false;
+        }
+
+        TreeNode* current = m_root;
+        for (const auto& c : prefix)
+        {
+            const int idx = c - 'a';
+            if (!current->m_children[idx])
+            {
+                return false;
+            }
+            current = current->m_children[idx];
+        }
+
+        return current != nullptr;
+
+    }
+
+private:
+    TreeNode* m_root;
+};
+
+
 int main()
 {
     std::cout << "Design!\n";
@@ -436,4 +523,13 @@ int main()
     hitCounter.hit(300);     // hit at timestamp 300.
     cout << "getHits for 300: " << hitCounter.getHits(300) << endl; // get hits at timestamp 300, return 4.
     cout << "getHits for 301: " << hitCounter.getHits(301) << endl; // get hits at timestamp 301, return 3.
+
+    // 208. Implement Trie (Prefix Tree)
+    Trie trie;
+    trie.insert("apple");
+    trie.search("apple");   // return True
+    trie.search("app");     // return False
+    trie.startsWith("app"); // return True
+    trie.insert("app");
+    trie.search("app");     // return True
 }

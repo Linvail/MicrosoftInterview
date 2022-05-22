@@ -96,105 +96,6 @@ namespace ArraysAndStrings
     }
 
     //-----------------------------------------------------------------------------------
-    // 42. Trapping Rain Water (Hard)
-    //
-    // There are 3 major ways to solve this.
-    // 1. Dynamic programming
-    // 2. Two pointer
-    // 3. Stack.
-    //
-    // The first two ways are made based on a fact:
-    // When you know the left boundary and the valley, you just need to know if there a
-    // boundary on the right that is equal or higher than the left boundary. You don't
-    // need to know the position of right boundary.
-    // For example, height[1] = 2, height[2] = 1, height[x] = 2+ (x > 2). We can know
-    // position 1 can trap one unit of water.
-    //
-    // To develop DP solution, we need the the maximum height of left and right of each
-    // position.
-    //-----------------------------------------------------------------------------------
-
-    // Using stack.
-    int trap(vector<int>& height)
-    {
-        // Use to store the left slope and valley/basin.
-        // For example,  2 -> 1. If the next is 2 (greater the top - 1), there is valley.
-
-        stack<size_t> positions;
-        const size_t len = height.size();
-        int i = 0;
-        int result = 0;
-
-        while (i < len)
-        {
-            if (positions.empty() || height[positions.top()] >= height[i])
-            {
-                positions.push(i);
-                i++;
-            }
-            else
-            {
-                const size_t valley = positions.top();
-                positions.pop();
-
-                // Empty means no left boundary. There is no valid valley.
-                // It also means that the height[i] is higher than the old left boundary.
-                // We discarded the old left boundary. The new one will be inserted in the next loop.
-                if (positions.empty())
-                {
-                    // Keep scanning the next..
-                    continue;
-                }
-
-                const int left = height[positions.top()];
-                const size_t maxBoundary = min(left, height[i]);
-                const size_t diff = maxBoundary - height[valley];
-                const size_t area = i - positions.top() - 1;
-
-                result += diff * area;
-
-                // Note that we don't increment i and don't change the stack.
-                // In the next loop, we will decide to pop the stack or insert the current position.
-            }
-        }
-
-        return result;
-    }
-
-    // Using dynamic programming
-    int trap_dp(vector<int>& height)
-    {
-        const size_t len = height.size();
-        // dp[i] : the maximum height of the left side.
-        vector<int> dp(len, 0);
-        int maxH = 0;
-        // dp[0] must be 0.
-        for (int i = 0; i < len; ++i)
-        {
-            dp[i] = maxH;
-            maxH = max(maxH, height[i]);
-        }
-
-        int result = 0;
-        // Now we need the max height of the right side.
-        // However, what we actually need is the minimum of maximum height of the left/right side.
-        // Therefore, it is possible to re-use dp[i] to store the min.
-        maxH = 0;
-        for (int i = len - 1; i >= 0; --i)
-        {
-            dp[i] = min(dp[i], maxH);
-            maxH = max(maxH, height[i]);
-
-            if (dp[i] > height[i])
-            {
-                result += dp[i] - height[i];
-            }
-        }
-
-        return result;
-    }
-
-    //-----------------------------------------------------------------------------------
     // 54. Spiral Matrix
     //
     // m == matrix.length
@@ -763,7 +664,6 @@ namespace ArraysAndStrings
     // Time: O(m + n) while m is the size of nums1 and n i the size of nums2
     // Space: O(1)
     //-----------------------------------------------------------------------------------
-
     int minOperations(vector<int>& nums1, vector<int>& nums2)
     {
         // Deal with the situation of impossible.
@@ -833,6 +733,67 @@ namespace ArraysAndStrings
     }
 
     //-----------------------------------------------------------------------------------
+    // 984. String Without AAA or BBB
+    // Greedy
+    //-----------------------------------------------------------------------------------
+
+    inline void addChar(int* count, char c, string* output, bool justOne = false)
+    {
+        if (*count >= 2 && !justOne)
+        {
+            *count -= 2;
+            output->push_back(c);
+            output->push_back(c);
+        }
+        else if(*count > 0)
+        {
+            *count -= 1;
+            output->push_back(c);
+        }
+    }
+
+    string strWithout3a3b(int a, int b)
+    {
+        string result;
+        while (a + b)
+        {
+            if (a > b)
+            {
+                addChar(&a, 'a', &result);
+                addChar(&b, 'b', &result, true);
+            }
+            else if( a < b )
+            {
+                addChar(&b, 'b', &result);
+                addChar(&a, 'a', &result, true);
+            }
+            else
+            {
+                if (!result.empty() && result.back() == 'a')
+                {
+                    while (a > 0)
+                    {
+                        result.append("ba");
+                        a--;
+                    }
+                    break;
+                }
+                else
+                {
+                    while (b > 0)
+                    {
+                        result.append("ab");
+                        b--;
+                    }
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    //-----------------------------------------------------------------------------------
     // Test function
     //-----------------------------------------------------------------------------------
     void TestArraysAndStrings()
@@ -846,19 +807,6 @@ namespace ArraysAndStrings
         reverseWordsII(charV);
         cout << "Result of Reverse Words in a String II: " << endl;
         LeetCodeUtil::printVector(charV);
-        cout << "\n\n";
-
-        // Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]
-        // Output: 6
-        //vector<int> intV = { 0,1,0,2,1,0,1,3,2,1,2,1 };
-        // Input: height = [4,2,0,3,2,5]
-        // Output: 9
-        vector<int> intV = { 4,2,0,3,2,5 };
-        cout << "Result of Trapping Rain Water(stack): " << trap(intV) << endl;
-        cout << "\n\n";
-
-        intV = { 0,1,0,2,1,0,1,3,2,1,2,1 };
-        cout << "Result of Trapping Rain Water(DP): " << trap_dp(intV) << endl;
         cout << "\n\n";
 
         // Input: matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -918,7 +866,7 @@ namespace ArraysAndStrings
         // Input: colors = "aabaa", neededTime = [1,2,3,4,1]
         // Output: 2
         input = "aabaa";
-        intV = { 1, 2, 3, 4, 1 };
+        vector<int> intV = { 1, 2, 3, 4, 1 };
         cout << "Result of Minimum Time to Make Rope Colorful: " << minCost(input, intV) << endl;
         cout << "\n";
 
@@ -949,11 +897,16 @@ namespace ArraysAndStrings
         // Input: nums1 = [1, 2, 3, 4, 5, 6], nums2 = [1, 1, 2, 2, 2, 2]
         // Output : 3
         // Input: [5, 2, 1, 5, 2, 2, 2, 2, 4, 3, 3, 5], [1, 4, 5, 5, 6, 3, 1, 3, 3]
-        // Output: 1
+        // Output: 1`
         vector<int> intV2 = { 5, 2, 1, 5, 2, 2, 2, 2, 4, 3, 3, 5 };
         intV = { 1, 4, 5, 5, 6, 3, 1, 3, 3 };
-
         cout << "Result of Equal Sum Arrays With Minimum Number of Operations: " << minOperations(intV2, intV) << endl;
+        cout << "\n";
+
+        // Input: a = 4, b = 1
+        // Output: "aabaa"
+        cout << "Result of String Without AAA or BBB: " << strWithout3a3b(3, 3) << endl;
+        cout << "\n";
     }
 }
 

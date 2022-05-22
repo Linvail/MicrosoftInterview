@@ -274,6 +274,75 @@ namespace TreesAndGraphs
         return result;
     }
 
+    //-----------------------------------------------------------------------------------
+    // 1448. Count Good Nodes in Binary Tree
+    //-----------------------------------------------------------------------------------
+
+    int goodNodes_helper(TreeNode* root, int maxValueAlongPath)
+    {
+        if (!root)
+        {
+            return 0;
+        }
+
+        if (root->val >= maxValueAlongPath )
+        {
+            return 1 + goodNodes_helper(root->left, root->val) +
+                goodNodes_helper(root->right, root->val);
+        }
+        else
+        {
+            return goodNodes_helper(root->left, maxValueAlongPath) +
+                goodNodes_helper(root->right, maxValueAlongPath);
+        }
+    }
+
+    int goodNodes(TreeNode* root)
+    {
+        return goodNodes_helper(root, INT_MIN);
+    }
+
+    int goodNodes_iteration(TreeNode* root)
+    {
+        if (!root)
+        {
+            return 0;
+        }
+
+        int result = 0;
+        stack<int> maxValueAlongPath;
+        stack<TreeNode*> nodeStack;
+        int currentMax = INT_MIN;
+        TreeNode* current = root;
+
+        while (current || !nodeStack.empty())
+        {
+            if (current)
+            {
+                currentMax = max(current->val, currentMax);
+                maxValueAlongPath.push(currentMax);
+                nodeStack.push(current);
+                current = current->left;
+            }
+            else
+            {
+                current = nodeStack.top();
+                nodeStack.pop();
+                currentMax = maxValueAlongPath.top();
+                maxValueAlongPath.pop();
+                if (current->val >= currentMax)
+                {
+                    result++;
+                }
+
+                current = current->right;
+            }
+        }
+
+        return result;
+    }
+
+
     void TestTreesAndGraphs()
     {
         // 235. Lowest Common Ancestor of a Binary Search Tree (Easy)
@@ -313,8 +382,17 @@ namespace TreesAndGraphs
         root = LeetCodeUtil::BuildTreeFromLevelOrderString(treeString);
         //auto resultV = boundaryOfBinaryTree(root);
         auto resultV = boundaryOfBinaryTreeIteration(root);
-        cout << "Result of  Boundary of Binary Tree: " << endl;
+        cout << "Result of Boundary of Binary Tree: " << endl;
         printVector(resultV);
+        DeleteTree(root);
+
+        // 1448. Count Good Nodes in Binary Tree
+        // Input: root = [3,1,4,3,null,1,5]
+        // Output: 4
+        treeString = "[3,1,4,3,null,1,5]";
+        root = LeetCodeUtil::BuildTreeFromLevelOrderString(treeString);
+        cout << "Result of Count Good Nodes in Binary Tree: " << goodNodes(root) << ". Expect: 4" << endl;
+
         DeleteTree(root);
     }
 }
