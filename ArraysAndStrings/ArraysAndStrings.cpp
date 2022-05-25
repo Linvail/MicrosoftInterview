@@ -11,7 +11,9 @@
 #include <list>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <numeric> // for accumulate
+#include <cctype> // for toupper / tolower / isupper / islower
 
 namespace ArraysAndStrings
 {
@@ -794,6 +796,185 @@ namespace ArraysAndStrings
     }
 
     //-----------------------------------------------------------------------------------
+    // 153. Find Minimum in Rotated Sorted Array (Medium)
+    // You must write an algorithm that runs in O(log n) time.
+    // Topic: binary search.
+    //
+    // Related question:
+    // 33. Search in Rotated Sorted Array (Medium)
+    // 81. Search in Rotated Sorted Array II (Medium) - Allow duplicates
+    // 154. Find Minimum in Rotated Sorted Array II (Hard) - Allow duplicates
+    //-----------------------------------------------------------------------------------
+
+    // Using iterative binary search.
+    int findMin(vector<int>& nums)
+    {
+        // Seeing O(log n), binary search instantly comes to our mind.
+        // To use binary search, we need to know which part (left or right) to continue.
+        // Observation:
+        // 0 1 2 4 5 6 7
+        // 7 0 1 2 4 5 6
+        // 6 7 0 1 2 4 5
+        // 5 6 7 0 1 2 4
+        // 4 5 6 7 0 1 2
+        // 2 4 5 6 7 0 1
+        // 1 2 4 5 6 7 0
+        //       ^
+        // As we can see, when mid is less than the right-most one, the minimum value
+        // must be in the left side or in the middle. Otherwise it is in right side.
+        int left = 0;
+        int right = nums.size() - 1;
+
+        while (left < right)
+        {
+            const int mid = left + ( right - left ) / 2;
+            // Use <=, not <.
+            if (nums[mid] <= nums[right])
+            {
+                right = mid;
+            }
+            else
+            {
+                left = mid + 1;
+            }
+
+        }
+        return nums[right];
+    }
+
+    class Solution153
+    {
+    public:
+        int findMin(vector<int>& nums)
+        {
+            return helper(nums, 0, (int)nums.size() - 1);
+        }
+
+        int helper(vector<int>& nums, int start, int end)
+        {
+            // This sub-list is sorted, return the smallest.
+            if (nums[start] <= nums[end])
+            {
+                return nums[start];
+            }
+
+            const int mid = start + ( end - start ) / 2;
+
+            return min(helper(nums, start, mid), helper(nums, mid + 1, end));
+        }
+    };
+
+    //-----------------------------------------------------------------------------------
+    // 1763. Longest Nice Substring (Easy)
+    //
+    // If we want to use Divide and Conquer, this is more than Easy.
+    //-----------------------------------------------------------------------------------
+
+    class Solution1763
+    {
+    public:
+
+        string longestNiceSubstring(string s)
+        {
+            // If a character doesn't have its pair(upper or lower) character, the LNS must
+            // appears on its left or right.
+            const int len = s.size();
+
+            // For each char, record whether this char's upper/lower both exists.
+            unordered_map<char, bool> characterHash;
+            for (int i = 0; i < s.size(); ++i)
+            {
+                const char c = s[i];
+                unordered_map<char, bool>::iterator thisChar = characterHash.find(c);
+                unordered_map<char, bool>::iterator pair =
+                    isupper(c) ? characterHash.find(tolower(c)) : characterHash.find(toupper(c));
+
+                if (thisChar != characterHash.end())
+                {
+                    // This char already exists.
+                    if (pair != characterHash.end())
+                    {
+                        pair->second = true;
+                        thisChar->second = true;
+                    }
+                }
+                else
+                {
+                    if (pair != characterHash.end())
+                    {
+                        characterHash[c] = true;
+                        pair->second = true;
+                    }
+                    else
+                    {
+                        characterHash[c] = false;
+                    }
+                }
+            }
+
+            char badChar = '0';
+            for (const auto& pair : characterHash)
+            {
+                if (!pair.second)
+                {
+                    badChar = pair.first;
+                }
+            }
+            int lastBadCharIndex = s.find_last_of(badChar);
+
+            if (lastBadCharIndex == string::npos)
+            {
+                return s;
+            }
+            else
+            {
+                string sub1 = longestNiceSubstring(s.substr(0, lastBadCharIndex));
+                string sub2 = lastBadCharIndex < len - 1 ? longestNiceSubstring(s.substr(lastBadCharIndex + 1)) : "";
+                return sub1.length() >= sub2.length() ? sub1 : sub2;
+            }
+        }
+
+    };
+
+    //-----------------------------------------------------------------------------------
+    // 1546. Maximum Number of Non-Overlapping Subarrays With Sum Equals Target
+    // Topic: Greedy, prefix sum, hash table.
+    //-----------------------------------------------------------------------------------
+    int maxNonOverlapping(vector<int>& nums, int target)
+    {
+        // Prefix sum is an important concept in this question.
+        // It accumulates the sum of all numbers before and including i.
+        // For example, for array: [-1, 3, 5, 1, 4, 2, -9], we have prefix sum as follows.
+        // [-1, 2, 7, 8, 12, 14, 5]
+        // And the algorithm below work like this:
+        // Iterate the array, when at i, if we found ( prefixSum[i] - 6 ) exists in the
+        // prefixSum. We know we can exclude the elements that compose the
+        // ( prefixSum[i] - 6 ).
+        // For example, when we meet 8, 8 - 6= 2, which is at prefixSum[1].
+        // So, we know nums[0~1] are not in the result array. The result array starts from
+        // 2 and ends at 3, whrere we meet 8.
+        unordered_map<int, int> prefixSum;
+
+        prefixSum[0] = -1;
+        int sum = 0;
+        int res = 0;
+        int last = -1; // The right boundary of the latest subarray.
+        for (int i = 0; i < nums.size(); i++)
+        {
+            sum += nums[i];
+            // At 3, 8 - 6 = 2. 2 exists and its index is 1. Set last to 3.
+            // At 5, 14 6 - 8. 8 exists and its index is 3. 3 is not greater than 3, so it counts.
+            if (prefixSum.find(sum - target) != prefixSum.end() && prefixSum[sum - target] >= last)
+            {
+                res++;
+                last = i;
+            }
+            prefixSum[sum] = i;
+        }
+        return res;
+    }
+
+    //-----------------------------------------------------------------------------------
     // Test function
     //-----------------------------------------------------------------------------------
     void TestArraysAndStrings()
@@ -903,9 +1084,33 @@ namespace ArraysAndStrings
         cout << "Result of Equal Sum Arrays With Minimum Number of Operations: " << minOperations(intV2, intV) << endl;
         cout << "\n";
 
+        // 984. String Without AAA or BBB
         // Input: a = 4, b = 1
         // Output: "aabaa"
         cout << "Result of String Without AAA or BBB: " << strWithout3a3b(3, 3) << endl;
+        cout << "\n";
+
+        // 153. Find Minimum in Rotated Sorted Array (Medium)
+        // Input: nums = [3,4,5,1,2]
+        // Output: 1
+        Solution153 sol153;
+        intV = { 3,4,5,1,2 };
+        cout << "Result of Find Minimum in Rotated Sorted Array: " << sol153.findMin(intV) << endl;
+        cout << "\n";
+
+        // 1763. Longest Nice Substring
+        // Input: s = "YazaAay"
+        // Output: "aAa"
+        Solution1763 sol1763;
+        input = "YazAaAaAay";
+        cout << "Result of Longest Nice Substring: " << sol1763.longestNiceSubstring(input) << endl;
+        cout << "\n";
+
+        // 1546. Maximum Number of Non-Overlapping Subarrays With Sum Equals Target
+        // Input: nums = [-1, 3, 5, 1, 4, 2, -9], target = 6
+        // Output : 2, [5,1], [4,2]
+        intV = { -1, 3, 5, 1, 4, 2, -9};
+        cout << "Result of Maximum Number of Non-Overlapping Subarrays With Sum Equals Target: " << maxNonOverlapping(intV, 6) << endl;
         cout << "\n";
     }
 }

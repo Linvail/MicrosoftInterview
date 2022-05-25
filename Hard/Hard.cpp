@@ -7,6 +7,8 @@
 #include <stack>
 #include <queue>
 #include <vector>
+#include <set>
+#include <deque>
 
 #include "LeetCodeUtil.h"
 
@@ -727,6 +729,229 @@ public:
     PrefixTree* m_prefixTree = nullptr;
 };
 
+//-----------------------------------------------------------------------------------
+// 154. Find Minimum in Rotated Sorted Array II
+//
+// Compare to "153. Find Minimum in Rotated Sorted Array", the nums allows duplicated
+// elements.
+//
+// Topic: binary search.
+//
+// Related question:
+// 33. Search in Rotated Sorted Array (Medium)
+// 81. Search in Rotated Sorted Array II (Medium) - Allow duplicates
+// 154. Find Minimum in Rotated Sorted Array II (Hard)
+//-----------------------------------------------------------------------------------
+
+class Solution154
+{
+public:
+    int findMin(vector<int>& nums)
+    {
+        // Similar to "81. Search in Rotated Sorted Array II".
+        // The countermeasure is the same: when mid's value is equal to the right's value,
+        // decrease the right instead of assigning right to mid.
+        int left = 0;
+        int right = nums.size() - 1;
+        // {1, 2, 2, 2, 0}
+        // {2, 2, 0, 1, 2}
+        // {2, 0, 1, 2, 2}
+        while (left < right)
+        {
+            const int mid = left + ( right - left ) / 2;
+
+            if (nums[mid] < nums[right])
+            {
+                right = mid;
+            }
+            else if (nums[mid] > nums[right])
+            {
+                left = mid + 1;
+            }
+            else
+            {
+                right--;
+            }
+        }
+
+        return nums[right];
+    }
+};
+
+//-----------------------------------------------------------------------------------
+// 218. The Skyline Problem
+//
+// Could use multiset
+//-----------------------------------------------------------------------------------
+
+#if( 0 )
+class Solution {
+public:
+    vector<vector<int>> getSkyline(vector<vector<int>>& buildings) {
+        vector<vector<int>> h, res;
+        multiset<int> m;
+        int pre = 0, cur = 0;
+        for (auto& a : buildings) {
+            h.push_back({ a[0], -a[2] });
+            h.push_back({ a[1], a[2] });
+        }
+        sort(h.begin(), h.end());
+        m.insert(0);
+        for (auto& a : h) {
+            if (a[1] < 0) m.insert(-a[1]);
+            else m.erase(m.find(a[1]));
+            cur = *m.rbegin();
+            if (cur != pre) {
+                res.push_back({ a[0], cur });
+                pre = cur;
+            }
+        }
+        return res;
+    }
+};
+#endif
+
+
+//-----------------------------------------------------------------------------------
+// 273. Integer to English Words
+// Topic: Recursion
+// Similar questions: Integer to Roman
+// 0 <= num <= 2^31 - 1 = 2,147,483,647  (just need Billion)
+//
+// Hints:
+// * Group the number by thousands (3 digits).
+// * Watch out for edge cases.
+//-----------------------------------------------------------------------------------
+class Solution273
+{
+public:
+    string numberToWords(int num)
+    {
+        if (num == 0)
+        {
+            return "Zero";
+        }
+
+        int threeDigits = num % 1000;
+        string result = convertHundred(threeDigits);
+        vector<string> dictOf3Zeros = { "Thousand", "Million", "Billion" };
+
+        for (int i = 0; i < 3; ++i)
+        {
+            // Remove last 3 digits and process the next 3 digits.
+            num /= 1000;
+            threeDigits = num % 1000;
+            result = threeDigits ? convertHundred(threeDigits) + " " + dictOf3Zeros[i] + " " + result : result;
+        }
+
+        // Remove trailing spaces.
+        while (result.back() == ' ')
+        {
+            result.pop_back();
+        }
+
+        return result;
+    }
+
+    // num at most have 3 digits.
+    string convertHundred(int num)
+    {
+        // Dictionary of numbers 1~19
+        vector<string> dict1 = { "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" };
+        // Dictionary of numbers 20, 30...90.
+        vector<string> dict2 = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+        string result;
+
+        int digit3 = num / 100;
+        int digit1And2 = num % 100;
+        int digit1 = num % 10;
+
+        if (digit3 > 0)
+        {
+            result = dict1[digit3] + " Hundred";
+            if (digit1And2 > 0)
+            {
+                result.push_back(' ');
+            }
+        }
+
+        //res = b < 20 ? v1[b] : v2[b / 10] + ( c ? " " + v1[c] : "" );
+        if (digit1And2 > 0)
+        {
+            // 19 = Nineteen
+            if (digit1And2 < 20)
+            {
+                result += dict1[digit1And2];
+            }
+            else
+            {
+                // 21 = Twenty One
+                result += dict2[digit1And2 / 10];
+                if (digit1 != 0)
+                {
+                    result.push_back(' ');
+                    result += dict1[digit1];
+                }
+            }
+        }
+
+        return result;
+    }
+};
+
+//-----------------------------------------------------------------------------------
+// 295. Find Median from Data Stream
+//-----------------------------------------------------------------------------------
+
+class MedianFinder
+{
+public:
+    MedianFinder()
+        : m_biggerQueue()
+        , m_smallerQueue()
+    {
+    }
+
+    void addNum(int num)
+    {
+        if (m_biggerQueue.empty() || num > m_biggerQueue.top())
+        {
+            m_biggerQueue.push(num);
+        }
+        else
+        {
+            m_smallerQueue.push(num);
+        }
+
+        if (m_biggerQueue.size() > m_smallerQueue.size() + 1)
+        {
+            m_smallerQueue.push(m_biggerQueue.top());
+            m_biggerQueue.pop();
+        }
+        else if (m_smallerQueue.size() > m_biggerQueue.size())
+        {
+            m_biggerQueue.push(m_smallerQueue.top());
+            m_smallerQueue.pop();
+        }
+    }
+
+    double findMedian()
+    {
+        if (m_biggerQueue.size() == m_smallerQueue.size())
+        {
+            return 0.5 * static_cast<double>( m_biggerQueue.top() + m_smallerQueue.top() );
+        }
+        else
+        {
+            return m_biggerQueue.top();
+        }
+    }
+
+private:
+    priority_queue<int, deque<int>, greater<int>> m_biggerQueue; // min heap
+    priority_queue<int, deque<int>, less<int>> m_smallerQueue; // max heap
+};
+
 int main()
 {
     std::cout << "Hard questions!\n";
@@ -803,4 +1028,33 @@ int main()
     cout << "Result of Word Search II: " << endl;
     LeetCodeUtil::printVector(availableWords);
     cout << "\n";
+
+    // 154. Find Minimum in Rotated Sorted Array II
+    // Input: nums = [2,2,2,0,1]
+    // Output: 0
+    intV = { 1,3,5 };
+    Solution154 sol154;
+    cout << "Result of Find Minimum in Rotated Sorted Array II: " << sol154.findMin(intV) << endl;
+    cout << "\n";
+
+    // 273. Integer to English Words
+    // Input: num = 1,234,567
+    // Output: "One Million Two Hundred Thirty Four Thousand Five Hundred Sixty Seven"
+    Solution273 sol273;
+    cout << "Result of Integer to English Words: " << sol273.numberToWords(1000) << endl;
+    cout << "\n";
+
+    // 295. Find Median from Data Stream
+    MedianFinder medianFinder;
+    medianFinder.addNum(-1);
+    cout << "findMedian: " << medianFinder.findMedian() << endl;
+    medianFinder.addNum(-2);
+    cout << "findMedian: " << medianFinder.findMedian() << endl;
+    medianFinder.addNum(-3);
+    cout << "findMedian: " << medianFinder.findMedian() << endl;
+    medianFinder.addNum(-4);
+    cout << "findMedian: " << medianFinder.findMedian() << endl;
+    medianFinder.addNum(-5);
+    cout << "findMedian: " << medianFinder.findMedian() << endl;
+
 }
