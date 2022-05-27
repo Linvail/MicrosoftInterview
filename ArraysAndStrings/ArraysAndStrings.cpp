@@ -987,7 +987,7 @@ namespace ArraysAndStrings
         vector<string> charV = { "t","h","e"," ","s","k","y"," ","i","s"," ","b","l","u","e" };
         reverseWordsII(charV);
         cout << "Result of Reverse Words in a String II: " << endl;
-        LeetCodeUtil::printVector(charV);
+        LeetCodeUtil::PrintVector(charV);
         cout << "\n\n";
 
         // Input: matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -995,7 +995,7 @@ namespace ArraysAndStrings
         vector<vector<int>> matrix = { {1, 2, 3} ,{4, 5, 6}, {7, 8, 9} };
         auto resultIntV = spiralOrder(matrix);
         cout << "Result of Spiral Matrix:" << endl;
-        LeetCodeUtil::printVector(resultIntV);
+        LeetCodeUtil::PrintVector(resultIntV);
         cout << "\n\n";
 
         // Input: matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]
@@ -1003,7 +1003,7 @@ namespace ArraysAndStrings
         matrix = { {1,2,3,4} ,{5,6,7,8},{9,10,11,12} };
         resultIntV = spiralOrder(matrix);
         cout << "Result of Spiral Matrix:" << endl;
-        LeetCodeUtil::printVector(resultIntV);
+        LeetCodeUtil::PrintVector(resultIntV);
         cout << "\n\n";
 
         // 1405. Longest Happy String

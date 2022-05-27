@@ -1026,7 +1026,7 @@ int main()
     Solution212 sol212;
     auto availableWords = sol212.findWords(charMatrix, words);
     cout << "Result of Word Search II: " << endl;
-    LeetCodeUtil::printVector(availableWords);
+    LeetCodeUtil::PrintVector(availableWords);
     cout << "\n";
 
     // 154. Find Minimum in Rotated Sorted Array II

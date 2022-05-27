@@ -256,12 +256,12 @@ namespace LinkedLists
         // Output: [7, 8, 0, 7]
         vector<int> v1 = { 7,2,4,3 };
         vector<int> v2 = { 5,6,4 };
-        ListNode* l1 = buildLinkedListFromVector(v1);
-        ListNode* l2 = buildLinkedListFromVector(v2);
+        ListNode* l1 = BuildLinkedListFromVector(v1);
+        ListNode* l2 = BuildLinkedListFromVector(v2);
         ListNode* result = addTwoNumbers(l1, l2);
 
         cout << "Result of Add Two Numbers II: " << endl;
-        printListNode(result);
+        PrintListNode(result);
         delete l1;
         delete l2;
         delete result;
@@ -271,22 +271,22 @@ namespace LinkedLists
         // Output: [1, 1, 3, 4, 4, 5]
         v1 = { 1,4,5 };
         v2 = { 1,3,4 };
-        l1 = buildLinkedListFromVector(v1);
-        l2 = buildLinkedListFromVector(v2);
+        l1 = BuildLinkedListFromVector(v1);
+        l2 = BuildLinkedListFromVector(v2);
         result = mergeTwoLists(l1, l2);
         cout << "Result of Merge Two Sorted Lists: " << endl;
-        printListNode(result);
+        PrintListNode(result);
 
         // 23. Merge k Sorted Lists (Hard)
         // Input: lists = [[1,4,5],[1,3,4],[2,6]]
         // Output: [1, 1, 2, 3, 4, 4, 5, 6]
         vector<int> v3 = { 2, 6 };
-        ListNode* l3 = buildLinkedListFromVector(v3);
+        ListNode* l3 = BuildLinkedListFromVector(v3);
         vector<ListNode*> lists = { l1, l2, l3 };
         //result = mergeKLists(lists);
         result = mergeKLists_min_heap(lists);
         cout << "Result of Merge k Sorted Lists: " << endl;
-        printListNode(result);
+        PrintListNode(result);
         delete result;
 
         // 138. Copy List with Random Pointer

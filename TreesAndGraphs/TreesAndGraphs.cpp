@@ -383,7 +383,7 @@ namespace TreesAndGraphs
         //auto resultV = boundaryOfBinaryTree(root);
         auto resultV = boundaryOfBinaryTreeIteration(root);
         cout << "Result of Boundary of Binary Tree: " << endl;
-        printVector(resultV);
+        PrintVector(resultV);
         DeleteTree(root);
 
         // 1448. Count Good Nodes in Binary Tree
