@@ -182,7 +182,7 @@ namespace LinkedLists
     //-----------------------------------------------------------------------------------
     // 138. Copy List with Random Pointer
     //
-    // The hard problem is how to deal with the random pointer, which might point to
+    // The hard part is how to deal with the random pointer, which might point to
     // a node that we do not create it.
     //
     // Two solutions:
@@ -247,6 +247,115 @@ namespace LinkedLists
         return root;
     }
 
+    //-----------------------------------------------------------------------------------
+    // 143. Reorder List
+    // Topic: two pointers, stack
+    // Idea:
+    // Two approaches:
+    // A:
+    //   1. Use two pointers to find the middle one. Cut right there to get two separated
+    //      linked list.
+    //   2. Reverse the 2nd list.
+    //   3. Insert the 2nd list into 1st list (one by one separately).
+    //
+    // B:
+    //   1. Use stack. Push all nodes into the stack.
+    //   2. Pop the top one. Cut out the incoming link and insert to the position after
+    //      head.
+    //   3. Continue to pop the next. We need to pop (n-1) / 2 nodes, n is the count of
+    //      all nodes.
+    //-----------------------------------------------------------------------------------
+    void reorderList(ListNode* head)
+    {
+        // This question is meaningful only if there are 3 nodes.
+        if (!head || !head->next || !head->next->next)
+        {
+            return;
+        }
+
+        ListNode* fastPtr = head;
+        ListNode* slowPtr = head;
+        while (fastPtr->next && fastPtr->next->next)
+        {
+            slowPtr = slowPtr->next;
+            fastPtr = fastPtr->next->next;
+        }
+        // n  n  n  n
+        //    ^
+        // slowPtr stays on the middle node.
+        // Reuse fastPtr. Let it be the head of the right list.
+        fastPtr = slowPtr->next;
+        // Cut trailing link of the 1st list.
+        slowPtr->next = nullptr;
+
+        // Reverse the right list. slowPtr will become the head of the right list.
+        slowPtr = nullptr;
+        while (fastPtr)
+        {
+            //         1 -> 2 -> null
+            // null <- 1 <- 2 <-
+            ListNode* tempPtr = fastPtr->next;
+            fastPtr->next = slowPtr;
+
+            slowPtr = fastPtr;
+            fastPtr = tempPtr;
+        }
+
+        // Combine the right list and the left list.
+        // 1     2     3
+        //    5     4
+        while (head && slowPtr)
+        {
+            ListNode* nextNodeL = head->next;
+            head->next = slowPtr;
+            slowPtr = slowPtr->next;
+            head->next->next = nextNodeL;
+            head = nextNodeL;
+        }
+    }
+
+    // 1 - 2 - 3 - 4 - 5
+    // 1 - 2 - 3 - 4 -
+    //   5
+    // 1 - 5 - 2 - 3 -
+    //           4
+    void reorderList_stack(ListNode* head)
+    {
+        // This question is meaningful only if there are 3 nodes.
+        if (!head || !head->next || !head->next->next)
+        {
+            return;
+        }
+
+        stack<ListNode*> nodeStack;
+
+        ListNode* cur = head;
+        while (cur!= nullptr)
+        {
+            nodeStack.push(cur);
+            cur = cur->next;
+        }
+        // This equation is obtained by observation.
+        int countToPop = ( nodeStack.size() - 1 ) / 2;
+
+        while (countToPop > 0)
+        {
+            cur = nodeStack.top();
+            nodeStack.pop();
+
+            ListNode* nextNode = head->next;
+            head->next = cur;
+            head->next->next = nextNode;
+            head = nextNode;
+
+            countToPop--;
+        }
+        nodeStack.top()->next = nullptr;
+    }
+
+    //-----------------------------------------------------------------------------------
+    // Test Function
+    //-----------------------------------------------------------------------------------
     void TestLinkedLists()
     {
         cout << endl;
@@ -310,6 +419,15 @@ namespace LinkedLists
         cout << endl;
         // result is a deep copy, so we are supposed to delete it.
         // However, this is just a test.
+
+        // 143. Reorder List
+        // Input: head = [1, 2, 3, 4, 5]
+        // Output : [1, 5, 2, 4, 3]
+        ListNode* head = LeetCodeUtil::BuildLinkedListFromVector({ 1, 2, 3, 4, 5 });
+        reorderList_stack(head);
+        cout << "\n143. Reorder List: " << endl;
+        LeetCodeUtil::PrintListNode(head);
+        cout << endl;
     }
 }
 

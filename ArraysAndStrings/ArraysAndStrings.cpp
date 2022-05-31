@@ -975,6 +975,79 @@ namespace ArraysAndStrings
     }
 
     //-----------------------------------------------------------------------------------
+    // 238. Product of Array Except Self
+    // Given an integer array nums, return an array answer such that answer[i] is equal
+    // to the product of all the elements of nums except nums[i].
+    //
+    // The product of any prefix or suffix of nums is guaranteed to fit in a 32 - bit
+    // integer.
+    //
+    // You must write an algorithm that runs in O(n) time and without using the division
+    // operation.
+    //
+    // Topic: prefix sum
+    //
+    // Follow up: Can you solve the problem in O(1) extra space complexity? (The output
+    // array does not count as extra space for space complexity analysis.)
+    //-----------------------------------------------------------------------------------
+    vector<int> productExceptSelf(vector<int>& nums)
+    {
+        // Input: nums = [1,2,3,4]
+        // Output: [24, 12, 8, 6]
+        const int len = nums.size();
+        // We cannot use division, so for a number at i, we need to know the product
+        // of 0 ~ i-1 and the product i+1 ~ n - 1.
+        // We can use two vectors to record them.
+        // forward[i] is the product from 0 ~ i - 1.
+        // [1,1,2,6] ->
+        vector<int> forward(len, 1);
+        // backward[i] is the product from i + 1 ~ n - 1.
+        // [24,12,4,1] <-
+        vector<int> backward(len, 1);
+
+        for (int i = 0; i < len - 1; ++i)
+        {
+            // The forward[0] must be 1, so we start from 1.
+            forward[i + 1] = forward[i] * nums[i];
+        }
+
+        for (int i = len - 1; i > 0; --i)
+        {
+            // The backward[len - 1] must be 1, so we start from 1.
+            backward[i - 1] = backward[i] * nums[i];
+        }
+        // Reuse nums since the values within are useless now.
+        for (int i = 0; i < len; ++i)
+        {
+            nums[i] = forward[i] * backward[i];
+        }
+
+        return nums;
+    }
+
+    // To fulfill the follow-up, we can only use one vector (the result vector).
+    vector<int> productExceptSelf_followUp(vector<int>& nums)
+    {
+        const int len = nums.size();
+        vector<int> result(len, 1);
+
+        // Calculate forward prefix sum in result vector.
+        for (int i = 0; i < len - 1; ++i)
+        {
+            result[i + 1] = result[i] * nums[i];
+        }
+        // Calculate backward prefix sum in result vector, too.
+        int right = 1;
+        for (int i = len - 1; i > 0; --i)
+        {
+            result[i - 1] *= right * nums[i];
+            right *= nums[i];
+        }
+
+        return result;
+    }
+
+    //-----------------------------------------------------------------------------------
     // Test function
     //-----------------------------------------------------------------------------------
     void TestArraysAndStrings()
@@ -1112,6 +1185,14 @@ namespace ArraysAndStrings
         intV = { -1, 3, 5, 1, 4, 2, -9};
         cout << "Result of Maximum Number of Non-Overlapping Subarrays With Sum Equals Target: " << maxNonOverlapping(intV, 6) << endl;
         cout << "\n";
+
+        // 238. Product of Array Except Self
+        // Input: nums = [1, 2, 3, 4]
+        // Output : [24, 12, 8, 6]
+        intV = { 1, 2, 3, 4 };
+        cout << "\nProduct of Array Except Self: " << endl;
+        resultIntV = productExceptSelf_followUp(intV);
+        LeetCodeUtil::PrintVector(resultIntV);
     }
 }
 
