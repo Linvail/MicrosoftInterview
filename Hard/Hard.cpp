@@ -779,38 +779,65 @@ public:
 };
 
 //-----------------------------------------------------------------------------------
-// 218. The Skyline Problem
+// 218. The Skyline Problem (Hard)
+// Topics: many, ordered set is one of them.
+//
+// buildings[i] = [lefti, righti, heighti]
 //
 // Could use multiset
 //-----------------------------------------------------------------------------------
 
-#if( 0 )
-class Solution {
+class Solution218
+{
 public:
-    vector<vector<int>> getSkyline(vector<vector<int>>& buildings) {
-        vector<vector<int>> h, res;
-        multiset<int> m;
-        int pre = 0, cur = 0;
-        for (auto& a : buildings) {
-            h.push_back({ a[0], -a[2] });
-            h.push_back({ a[1], a[2] });
+    vector<vector<int>> getSkyline(vector<vector<int>>& buildings)
+    {
+        // Idea: Observe the turning points. They occur when height changes.
+        // Separate left(entrance) height and right(exit) height, because we need
+        // different processes.
+
+        // We need a storage to sort the building's height by x coordinate.
+        // pair<index of height, height>. Negative height represents the left side of the building.
+        // Positive height represents the right side of the building.
+        vector<pair<int, int>> buildingLines;
+        for (const auto& building : buildings)
+        {
+            buildingLines.push_back({ building[0], -building[2] });
+            buildingLines.push_back({ building[1], building[2] });
         }
-        sort(h.begin(), h.end());
-        m.insert(0);
-        for (auto& a : h) {
-            if (a[1] < 0) m.insert(-a[1]);
-            else m.erase(m.find(a[1]));
-            cur = *m.rbegin();
-            if (cur != pre) {
-                res.push_back({ a[0], cur });
-                pre = cur;
+        // This will sort it by the 1st number of the pair - x coordinate.
+        sort(buildingLines.begin(), buildingLines.end());
+
+        // Use this set to sort the height.
+        // When scanning from left to right. We want to fetch the highest.
+        multiset<int> heights;
+        int prevHeight = 0;
+        vector<vector<int>> result;
+        // This is important because we need the points on ground.
+        heights.insert(0);
+        for (const auto& buildingLine : buildingLines)
+        {
+            if (buildingLine.second < 0) // Left side of building
+            {
+                heights.insert(-buildingLine.second); // Save real positive height.
+            }
+            else
+            {
+                // Meet right side of building. Remove it.
+                heights.erase(heights.find(buildingLine.second));
+            }
+            // The highest is on the back.
+            int currHeight = *heights.rbegin();
+            if (currHeight != prevHeight) // Only needs the point when highest number changes.
+            {
+                result.push_back({ buildingLine.first, currHeight });
+                prevHeight = currHeight;
             }
         }
-        return res;
+
+        return result;
     }
 };
-#endif
-
 
 //-----------------------------------------------------------------------------------
 // 273. Integer to English Words
@@ -1056,5 +1083,15 @@ int main()
     cout << "findMedian: " << medianFinder.findMedian() << endl;
     medianFinder.addNum(-5);
     cout << "findMedian: " << medianFinder.findMedian() << endl;
+
+    // 218. The Skyline Problem (Hard)
+    Solution218 sol218;
+    // Input: buildings = [[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]
+    // Output: [[2, 10], [3, 15], [7, 12], [12, 0], [15, 10], [20, 8], [24, 0]]
+    matrixString = "[[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]";
+    LeetCodeUtil::BuildIntMatrixFromString(matrixString, &matrix);
+    auto resultVVI = sol218.getSkyline(matrix);
+    cout << "\n218. The Skyline Problem (Hard):" << endl;
+    LeetCodeUtil::PrintMatrix(resultVVI);
 
 }
