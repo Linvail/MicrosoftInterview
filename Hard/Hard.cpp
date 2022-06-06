@@ -26,10 +26,10 @@ using namespace std;
 // When you know the left boundary and the valley, you just need to know if there a
 // boundary on the right that is equal or higher than the left boundary. You don't
 // need to know the position of right boundary.
-// For example, height[1] = 2, height[2] = 1, height[x] = 2+ (x > 2). We can know
-// position 1 can trap one unit of water.
+// For example, height[1] = 2, height[2] = 1, height[x] = 2+ (where x > 2). We can
+// know position 1 can trap one unit of water.
 //
-// To develop DP solution, we need the the maximum height of left and right of each
+// To develop DP solution, we need the maximum height of left and right of each
 // position.
 //-----------------------------------------------------------------------------------
 
@@ -930,6 +930,11 @@ public:
 // 295. Find Median from Data Stream
 //-----------------------------------------------------------------------------------
 
+// We use two priority queues to maintain left half and right half numbers.
+// The left half, m_smallerQueue, is max heap, the greatest number is on top.
+// The right halt, m_biggerQueue, is min heap, the least number is on top.
+// We keep both queues have equal count or m_biggerQueue has one more number.
+// The median is the arithmetic mean of two tops or the top of m_biggerQueue.
 class MedianFinder
 {
 public:

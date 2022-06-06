@@ -61,13 +61,18 @@ namespace TreesAndGraphs
             return root;
         }
 
+        // First, check if p and q are both in the left tree.
         TreeNode* left = lowestCommonAncestor(root->left, p, q);
         if (left && left != p && left != q)
         {
+            // left is not null, and it is also not p/q itself, then left
+            // must be the answer.
             return left;
         }
 
         // When we reach here, we already know 'left' is either null, p, or q.
+        // So, p and q might be both in right tree or one is in left and one is
+        // in right.
         TreeNode* right = lowestCommonAncestor(root->right, p, q);
 
         // Root is LCA if both are not null.
