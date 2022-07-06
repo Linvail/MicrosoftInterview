@@ -354,6 +354,31 @@ namespace LinkedLists
     }
 
     //-----------------------------------------------------------------------------------
+    // 24. Swap Nodes in Pairs
+    //-----------------------------------------------------------------------------------
+    class Solution24
+    {
+    public:
+        ListNode* swapPairs(ListNode* head, ListNode* prevNode = nullptr)
+        {
+            if (!head) return nullptr;
+
+            if (!head->next) return head;
+
+            ListNode* newHead = head->next;
+            head->next = swapPairs(head->next->next, head);
+            newHead->next = head;
+
+            if (prevNode)
+            {
+                prevNode->next = newHead;
+            }
+
+            return newHead;
+        }
+    };
+
+    //-----------------------------------------------------------------------------------
     // Test Function
     //-----------------------------------------------------------------------------------
     void TestLinkedLists()
@@ -398,7 +423,7 @@ namespace LinkedLists
         PrintListNode(result);
         delete result;
 
-        // 138. Copy List with Random Pointer
+        // 138. Copy List with Random Pointer (Medium)
         // Input: head = [[7,null],[13,0],[11,4],[10,2],[1,0]]
         // Output: [[7, null], [13, 0], [11, 4], [10, 2], [1, 0]]
         Node node7(7);
@@ -420,12 +445,22 @@ namespace LinkedLists
         // result is a deep copy, so we are supposed to delete it.
         // However, this is just a test.
 
-        // 143. Reorder List
+        // 143. Reorder List (Medium)
         // Input: head = [1, 2, 3, 4, 5]
         // Output : [1, 5, 2, 4, 3]
         ListNode* head = LeetCodeUtil::BuildLinkedListFromVector({ 1, 2, 3, 4, 5 });
         reorderList_stack(head);
         cout << "\n143. Reorder List: " << endl;
+        LeetCodeUtil::PrintListNode(head);
+        cout << endl;
+
+        // 24. Swap Nodes in Pairs (Medium)
+        // Input: head = [1,2,3,4]
+        // Output: [2, 1, 4, 3]
+        Solution24 sol24;
+        head = LeetCodeUtil::BuildLinkedListFromVector({ 1,2,3,4 });
+        cout << "\n24. Swap Nodes in Pairs: " << endl;
+        head = sol24.swapPairs(head);
         LeetCodeUtil::PrintListNode(head);
         cout << endl;
     }
