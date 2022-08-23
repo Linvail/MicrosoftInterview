@@ -40,48 +40,32 @@ int trap(vector<int>& height)
     // For example,  2 -> 1. If the next is 2 (greater the top - 1), there is valley.
     // Since we are looking for valley, we need to find the previous greater element (PGE)
     // and next greater element (NGE). So, we need a monotonic decreasing stack.
-    stack<size_t> positions;
+    stack<size_t> monoStack;
     const size_t len = height.size();
-    int i = 0;
     int result = 0;
 
-    while (i < len)
+    for(int i = 0; i < len; ++i)
     {
-        if (positions.empty() || height[positions.top()] >= height[i])
+        while (!monoStack.empty() && height[monoStack.top()] < height[i])
         {
-            // If we are not climbing, just push it into the stack.
-            positions.push(i);
-            i++;
-        }
-        else
-        {
-            const size_t valley = positions.top();
-            positions.pop();
+            const size_t valley = monoStack.top();
+            monoStack.pop();
 
-            // Empty means no left boundary. There is no valid valley.
-            // It also means that the height[i] is higher than the old left boundary.
-            // We discarded the old left boundary. The new one will be inserted in the next loop.
-            if (positions.empty())
+            if (monoStack.empty())
             {
-                // Keep scanning the next..
+                // No left boundary, so it cannot trap water.
                 continue;
             }
 
-            // Now the top element is the index of the left boundary.
-            const int left = height[positions.top()];
+            const int left = height[monoStack.top()];
             const size_t maxBoundary = min(left, height[i]);
             const size_t diff = maxBoundary - height[valley];
-            const size_t area = i - positions.top() - 1;
+            const size_t area = i - monoStack.top() - 1;
 
-            // Note that we don't increment i and don't change the stack.
-            // In the next loop, we will decide to pop the stack or insert the current position.
-            // This the most delicate part of this algorithm.
-            // For the test case : [0,1,0,2,1,0,1,3,2,1,2,1]
-            // The result will be 1 + 1 + 0(0 * 2) + 3 + 1.
-            // The 0 is tricky. When it occurs, the left is index 4(top), the valley is 6, the right (i) is 7.
-            // Their height is 1, 1, 3, respectively. The left and valley have the same height, so it cannot trap water.
             result += diff * area;
         }
+
+        monoStack.push(i);
     }
 
     return result;
@@ -1048,10 +1032,9 @@ int main()
     // 42. Trapping Rain Water (Hard)
     // Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]
     // Output: 6
-    //vector<int> intV = { 0,1,0,2,1,0,1,3,2,1,2,1 };
     // Input: height = [4,2,0,3,2,5]
     // Output: 9
-    vector<int> intV = { 0,1,0,2,1,0,1,3,2,1,2,1 };
+    vector<int> intV = { 4,2,0,3,2,5 };
     cout << "\n42. Trapping Rain Water(stack): " << trap(intV) << ". Expect: 9" << endl;
 
     intV = { 0,1,0,2,1,0,1,3,2,1,2,1 };
