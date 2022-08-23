@@ -199,10 +199,7 @@ namespace TreesAndGraphs
     {
         vector<int> result;
         // Note that when root has no child, it is also a left but we cannot add it twice.
-        if (root)
-        {
-            result.push_back(root->val);
-        }
+        result.push_back(root->val);
 
         boundaryOfBinaryTreeHelper(root->left, true, false, result);
         boundaryOfBinaryTreeHelper(root->right, false, true, result);
@@ -226,6 +223,8 @@ namespace TreesAndGraphs
         // root is not considered as leaf if it has at least one node.
         if (left || right)
         {
+            // Add root node now if it is not a leaf.
+            // If it is, we will add it later, not now.
             result.push_back(root->val);
         }
 
@@ -240,16 +239,19 @@ namespace TreesAndGraphs
             left = left->left ? left->left : left->right;
         }
 
-        // Collect leaves from left to right.
+        // Collect leaves from left to right. This is the most difficult part.
         stack<TreeNode*> nodeStack;
         while (current || !nodeStack.empty())
         {
             if (current)
             {
-                nodeStack.push(current);
                 if (!current->left && !current->right)
                 {
                     result.push_back(current->val);
+                }
+                else
+                {
+                    nodeStack.push(current);
                 }
                 current = current->left;
             }
@@ -274,6 +276,7 @@ namespace TreesAndGraphs
             right = right->right ? right->right : right->left;
         }
 
+        // Insert the nodes of right boundary. Note that we must insert in reverse order.
         result.insert(result.end(), rightBoundaryTemp.rbegin(), rightBoundaryTemp.rend());
 
         return result;

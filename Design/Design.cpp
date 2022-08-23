@@ -29,7 +29,6 @@ public:
     LRUCache(int capacity)
         : m_capacity(capacity)
     {
-
     }
 
     int get(int key)
@@ -40,7 +39,10 @@ public:
             return -1;
         }
 
-        // Transfers only the element pointed by 3rd parameter from 2nd parameter into the container.
+        // std::list::splice : Transfer elements from list to list
+        // void splice (iterator position, list& x, iterator i);
+        //
+        // Transfers only the element pointed by 3rd parameter from 2nd parameter into the position (1st parameter).
         // Even if we move the element, the iterator won't become invalid.
         m_storage.splice(m_storage.begin(), m_storage, index->second);
 
@@ -57,10 +59,14 @@ public:
             m_storage.erase(index->second);
         }
 
-        m_storage.push_front(pair<int, int>(key, value));
+        // Put the new record in the front of the list.
+        m_storage.emplace_front(key, value);
+        // Remember the iterator.
         m_hashTable[key] = m_storage.begin();
 
-        if (m_storage.size() > m_capacity)
+        // If the size exceeds the capacity, remove the last item in the m_storage.
+        // Note that we call size() on the unordered_map, not on the list.
+        if (m_hashTable.size() > m_capacity)
         {
             int deadKey = m_storage.back().first;
             m_storage.pop_back();
@@ -70,7 +76,8 @@ public:
 
 private:
     int m_capacity;
-    // <key, value>
+    // The list to store the pair of <key, value>.
+    // The item in list cannot be accessed by index, we access it by iterator.
     list<pair<int, int>> m_storage;
     // <key, iterator to the element in m_storage>
     unordered_map<int, list<pair<int, int>>::iterator> m_hashTable;
@@ -453,6 +460,98 @@ private:
     TreeNode* m_root;
 };
 
+//-----------------------------------------------------------------------------------
+// 622. Design Circular Queue (Medium)
+// Also asked by Nvidia.
+//-----------------------------------------------------------------------------------
+class MyCircularQueue
+{
+public:
+    MyCircularQueue(int k) : m_data(k, -1)
+    {
+    }
+
+    bool enQueue(int value)
+    {
+        if (m_data[tail] != -1)
+        {
+            // Full.
+            return false;
+        }
+
+        m_data[tail] = value;
+        // If tail is in the last slot, move it to 0.
+        if (tail == m_data.size() - 1)
+        {
+            tail = 0;
+        }
+        else
+        {
+            tail++;
+        }
+
+        empty = false;
+
+        return true;
+    }
+
+    bool deQueue()
+    {
+        if (m_data[head] == -1)
+        {
+            // Empty
+            return false;
+        }
+
+        m_data[head] = -1;
+        // If head is in the last slot, move it to 0.
+        if (head == m_data.size() - 1)
+        {
+            head = 0;
+        }
+        else
+        {
+            head++;
+        }
+
+        if (head == tail)
+        {
+            empty = true;
+        }
+
+        return true;
+    }
+
+    int Front()
+    {
+        return m_data[head];
+    }
+
+    int Rear()
+    {
+        return tail == 0 ? m_data.back() : m_data[tail - 1];
+    }
+
+    bool isEmpty()
+    {
+        return empty;
+    }
+
+    bool isFull()
+    {
+        return head == tail && !empty;
+    }
+
+private:
+    vector<int> m_data;
+    // Head index stays on the first stored data.
+    size_t head = 0;
+    // Tail index stays on the next available slot (if not full).
+    size_t tail = 0;
+    // When the storage is full, we need this flag to distinguish whether it's empty or full because
+    // both head/tail would stay on the same index on those situations.
+    bool empty = true;
+};
 
 int main()
 {
@@ -532,4 +631,17 @@ int main()
     trie.startsWith("app"); // return True
     trie.insert("app");
     trie.search("app");     // return True
+
+    // 622. Design Circular Queue (Medium)
+    cout << "\n622. Design Circular Queue:" << endl;
+    MyCircularQueue myCircularQueue(3);
+    cout << myCircularQueue.enQueue(1) << endl; // return True
+    cout << myCircularQueue.enQueue(2) << endl; // return True
+    cout << myCircularQueue.enQueue(3) << endl; // return True
+    cout << myCircularQueue.enQueue(4) << endl; // return False
+    cout << myCircularQueue.Rear() << endl;     // return 3
+    cout << myCircularQueue.isFull() << endl;   // return True
+    cout << myCircularQueue.deQueue() << endl;  // return True
+    cout << myCircularQueue.enQueue(4) << endl; // return True
+    cout << myCircularQueue.Rear() << endl;     // return 4
 }

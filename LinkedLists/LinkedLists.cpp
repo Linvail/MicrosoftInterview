@@ -122,7 +122,7 @@ namespace LinkedLists
 
     ListNode* mergeKLists(vector<ListNode*>& lists)
     {
-        return mergeKLists_helper(lists, 0, lists.size() - 1);
+        return mergeKLists_helper(lists, 0, static_cast<int>(lists.size() - 1));
     }
 
     ListNode* mergeKLists_helper(vector<ListNode*>& lists, int left, int right)
@@ -147,12 +147,32 @@ namespace LinkedLists
 
     ListNode* mergeKLists_min_heap(vector<ListNode*>& lists)
     {
+        /*
         auto comp = [](ListNode*& list1, ListNode*& list2)
         {
             return list1->val > list2->val;
         };
 
         priority_queue<ListNode*, vector<ListNode*>, decltype( comp )> nodeQueue(comp);
+        */
+
+        struct ListNodeComp
+        {
+            bool operator()(ListNode*& list1, ListNode*& list2) const
+            {
+                return list1->val > list2->val;
+            }
+        };
+
+        priority_queue<ListNode*, vector<ListNode*>, ListNodeComp> nodeQueue;
+
+        for (auto list : lists)
+        {
+            if (list)
+            {
+                nodeQueue.push(list);
+            }
+        }
 
         for (auto list : lists)
         {
@@ -336,7 +356,7 @@ namespace LinkedLists
             cur = cur->next;
         }
         // This equation is obtained by observation.
-        int countToPop = ( nodeStack.size() - 1 ) / 2;
+        int countToPop = ( static_cast<int>(nodeStack.size()) - 1 ) / 2;
 
         while (countToPop > 0)
         {

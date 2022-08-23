@@ -20,14 +20,14 @@ using namespace std;
 // There are 3 major ways to solve this.
 // 1. Dynamic programming
 // 2. Two pointer
-// 3. Stack.
+// 3. Monotonic stack.
 //
 // The first two ways are made based on a fact:
 // When you know the left boundary and the valley, you just need to know if there a
 // boundary on the right that is equal or higher than the left boundary. You don't
 // need to know the position of right boundary.
 // For example, height[1] = 2, height[2] = 1, height[x] = 2+ (where x > 2). We can
-// know position 1 can trap one unit of water.
+// know position 2 can trap one unit of water.
 //
 // To develop DP solution, we need the maximum height of left and right of each
 // position.
@@ -36,9 +36,10 @@ using namespace std;
 // Using stack.
 int trap(vector<int>& height)
 {
-    // Use to store the left slope and valley/basin.
+    // Use to store the index of left slope and valley/basin.
     // For example,  2 -> 1. If the next is 2 (greater the top - 1), there is valley.
-
+    // Since we are looking for valley, we need to find the previous greater element (PGE)
+    // and next greater element (NGE). So, we need a monotonic decreasing stack.
     stack<size_t> positions;
     const size_t len = height.size();
     int i = 0;
@@ -48,6 +49,7 @@ int trap(vector<int>& height)
     {
         if (positions.empty() || height[positions.top()] >= height[i])
         {
+            // If we are not climbing, just push it into the stack.
             positions.push(i);
             i++;
         }
@@ -65,15 +67,20 @@ int trap(vector<int>& height)
                 continue;
             }
 
+            // Now the top element is the index of the left boundary.
             const int left = height[positions.top()];
             const size_t maxBoundary = min(left, height[i]);
             const size_t diff = maxBoundary - height[valley];
             const size_t area = i - positions.top() - 1;
 
-            result += diff * area;
-
             // Note that we don't increment i and don't change the stack.
             // In the next loop, we will decide to pop the stack or insert the current position.
+            // This the most delicate part of this algorithm.
+            // For the test case : [0,1,0,2,1,0,1,3,2,1,2,1]
+            // The result will be 1 + 1 + 0(0 * 2) + 3 + 1.
+            // The 0 is tricky. When it occurs, the left is index 4(top), the valley is 6, the right (i) is 7.
+            // Their height is 1, 1, 3, respectively. The left and valley have the same height, so it cannot trap water.
+            result += diff * area;
         }
     }
 
@@ -859,6 +866,9 @@ public:
             return "Zero";
         }
 
+    #define RECURSIVE 1
+
+    #if(!RECURSIVE)
         int threeDigits = num % 1000;
         string result = convertHundred(threeDigits);
         vector<string> dictOf3Zeros = { "Thousand", "Million", "Billion" };
@@ -878,31 +888,76 @@ public:
         }
 
         return result;
+    #else
+
+        // Remove the space in the head.
+        return toWords(num).substr(1);
+
+    #endif
     }
 
+private:
+
+    #if(RECURSIVE)
+
+    // The leading empty strings won't be used. They are added to shift the data so we can use the index easily.
+    vector<string> ones = { "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" };
+    vector<string> tens = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+
+    string toWords(int n)
+    {
+        if (n >= 1000000000)
+        {
+            return toWords(n / 1000000000) + " Billion" + toWords(n % 1000000000);
+        }
+        if (n >= 1000000)
+        {
+            return toWords(n / 1000000) + " Million" + toWords(n % 1000000);
+        }
+        if (n >= 1000)
+        {
+            return toWords(n / 1000) + " Thousand" + toWords(n % 1000);
+        }
+        if (n >= 100)
+        {
+            return toWords(n / 100) + " Hundred" + toWords(n % 100);
+        }
+        if (n >= 20)
+        {
+            return " " + tens[n / 10] + toWords(n % 10);
+        }
+        if (n >= 1)
+        {
+            return " " + ones[n];
+        }
+        return "";
+    }
+    #endif
+
+    #if(!RECURSIVE)
     // num at most have 3 digits.
     string convertHundred(int num)
     {
         // Dictionary of numbers 1~19
-        vector<string> dict1 = { "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" };
-        // Dictionary of numbers 20, 30...90.
-        vector<string> dict2 = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+        const vector<string> dict1 = { "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" };
+        // Dictionary of numbers 20, 30...90. The first two won't be used.
+        const vector<string> dict2 = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
         string result;
 
-        int digit3 = num / 100;
-        int digit1And2 = num % 100;
-        int digit1 = num % 10;
+        const int digit3 = num / 100;
+        const int digit1And2 = num % 100;
 
+        // Make 'XX Hundred' if there is.
         if (digit3 > 0)
         {
             result = dict1[digit3] + " Hundred";
             if (digit1And2 > 0)
             {
+                // Append space only when there is number in the back.
                 result.push_back(' ');
             }
         }
 
-        //res = b < 20 ? v1[b] : v2[b / 10] + ( c ? " " + v1[c] : "" );
         if (digit1And2 > 0)
         {
             // 19 = Nineteen
@@ -912,8 +967,9 @@ public:
             }
             else
             {
-                // 21 = Twenty One
+                // For example: 21 = Twenty One
                 result += dict2[digit1And2 / 10];
+                const int digit1 = num % 10;
                 if (digit1 != 0)
                 {
                     result.push_back(' ');
@@ -924,6 +980,7 @@ public:
 
         return result;
     }
+    #endif
 };
 
 //-----------------------------------------------------------------------------------
@@ -994,12 +1051,11 @@ int main()
     //vector<int> intV = { 0,1,0,2,1,0,1,3,2,1,2,1 };
     // Input: height = [4,2,0,3,2,5]
     // Output: 9
-    vector<int> intV = { 4,2,0,3,2,5 };
-    cout << "Result of Trapping Rain Water(stack): " << trap(intV) << ". Expect: 9" << endl;
-    cout << "\n\n";
+    vector<int> intV = { 0,1,0,2,1,0,1,3,2,1,2,1 };
+    cout << "\n42. Trapping Rain Water(stack): " << trap(intV) << ". Expect: 9" << endl;
 
     intV = { 0,1,0,2,1,0,1,3,2,1,2,1 };
-    cout << "Result of Trapping Rain Water(DP): " << trap_dp(intV) << ". Expect: 6" << endl;
+    cout << "\n42. Trapping Rain Water(DP): " << trap_dp(intV) << ". Expect: 6" << endl;
     cout << "\n\n";
 
     // 317. Shortest Distance from All Buildings
@@ -1073,10 +1129,10 @@ int main()
     // Input: num = 1,234,567
     // Output: "One Million Two Hundred Thirty Four Thousand Five Hundred Sixty Seven"
     Solution273 sol273;
-    cout << "Result of Integer to English Words: " << sol273.numberToWords(1000) << endl;
-    cout << "\n";
+    cout << "\n273. Integer to English Words: " << sol273.numberToWords(123456) << endl;
 
     // 295. Find Median from Data Stream
+    cout << "\n295. Find Median from Data Stream: " << endl;
     MedianFinder medianFinder;
     medianFinder.addNum(-1);
     cout << "findMedian: " << medianFinder.findMedian() << endl;
